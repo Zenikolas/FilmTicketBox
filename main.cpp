@@ -10,10 +10,6 @@
 
 #include <Poco/Util/ServerApplication.h>
 
-#include <Poco/StreamCopier.h>
-
-#include <chrono>
-
 #include "cinema.h"
 
 Poco::DateTime getCurrentTime() {
@@ -52,13 +48,6 @@ public:
             // todo add error description
             response.send();
         }
-
-
-
-
-
-
-
     }
 };
 
@@ -124,8 +113,6 @@ bool CinemasRequestHandler::addCinemas(std::istream& content)
     }
 
     for (auto& cinema : *cinemas) {
-
-        std::cout << "Cinema:" << std::endl;
         auto cinemaObject = cinema.extract<Poco::JSON::Object::Ptr>();
         if (cinemaObject.isNull()) {
             return false;

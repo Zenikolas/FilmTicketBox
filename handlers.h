@@ -6,9 +6,6 @@
 #include <Poco/Net/HTTPRequestHandlerFactory.h>
 #include <Poco/Net/HTTPRequestHandler.h>
 
-#include <Poco/JSON/Object.h>
-#include <Poco/JSON/Parser.h>
-
 #include "cinema.h"
 
 class CinemasRequestHandler : public Poco::Net::HTTPRequestHandler {
@@ -19,6 +16,10 @@ class CinemasRequestHandler : public Poco::Net::HTTPRequestHandler {
     void handleCinemasRequest(Poco::Net::HTTPServerRequest &request, Poco::Net::HTTPServerResponse &response);
 
     void handleCinemaRequest(Poco::Net::HTTPServerRequest &request, Poco::Net::HTTPServerResponse &response,
+                             std::vector<std::string> &pathSegments);
+
+    void handleFilmsRequest(Poco::Net::HTTPServerRequest &request,
+                        Poco::Net::HTTPServerResponse &response,
                              std::vector<std::string> &pathSegments);
 
 public:

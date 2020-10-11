@@ -17,9 +17,9 @@ class CinemaSession {
 public:
     CinemaSession(size_t width, size_t height);
 
-    CinemaSession(CinemaSession &&rhs);
+    CinemaSession(CinemaSession&& rhs);
 
-    CinemaSession &operator=(CinemaSession &&rhs);
+    CinemaSession& operator=(CinemaSession&& rhs);
 
     std::vector<std::string> availableSeats() const;
 
@@ -35,19 +35,20 @@ public:
 public:
     Cinema(size_t width, size_t height);
 
-    Cinema(Cinema &&rhs);
+    Cinema(Cinema&& rhs);
 
-    Cinema &operator=(Cinema &&rhs);
+    Cinema& operator=(Cinema&& rhs);
 
     std::set<std::string> listOfFilms() const;
 
-    bool filmIsShowing(const std::string &searchingFilm) const;
+    bool filmIsShowing(const std::string& searchingFilm) const;
 
-    std::vector<std::string> checkAvailableTickets(const std::string &searchingFilm) const;
+    std::vector<std::string>
+    checkAvailableTickets(const std::string& searchingFilm) const;
 
-    bool bookTicket(const std::string &searchingFilm, size_t i, size_t j);
+    bool bookTicket(const std::string& searchingFilm, size_t i, size_t j);
 
-    bool appendFilm(const std::string &filmName);
+    bool appendFilm(const std::string& filmName);
 };
 
 class Cinemas {
@@ -57,35 +58,48 @@ public:
     std::vector<std::string> listOfCinemas() const;
 
     std::set<std::string> listOfFilms(const std::string& cinemaName) const;
+
     std::set<std::string> listOfFilms() const;
 
-    bool filmIsShowing(const std::string &cinemaName, const std::string &searchingFilm) const;
+    bool
+    filmIsShowing(const std::string& cinemaName, const std::string& searchingFilm) const;
+    std::vector<std::string>
+    cinemasFilmIsShowing(const std::string& searchingFilm)
+    const;
 
-    std::vector<std::string> checkAvailableTickets(const std::string &cinemaName, const std::string &searchingFilm) const;
+    std::vector<std::string> checkAvailableSeats(const std::string& cinemaName,
+                                                 const std::string& searchingFilm) const;
 
     bool addCinema(std::string_view name, size_t width, size_t height);
 
 
-    bool bookTicket(const std::string &cinemaName, const std::string &searchingFilm, size_t i, size_t j);
+    bool
+    bookTicket(const std::string& cinemaName, const std::string& searchingFilm, size_t i,
+               size_t j);
 
-    bool appendFilm(const std::string &cinemaName, const std::string &filmName);
+    bool
+    bookTickets(const std::string& cinemaName, const std::string& searchingFilm,
+               const std::vector<std::string>& bookingSeats);
+
+    bool appendFilm(const std::string& cinemaName, const std::string& filmName);
 };
 
 inline
 CinemaSession::CinemaSession(size_t width, size_t height) : m_seats(width),
-                                                            m_avaliableSeatsCount(width * height) {
-    for (auto &columnt : m_seats) {
+                                                            m_avaliableSeatsCount(
+                                                                    width * height) {
+    for (auto& columnt : m_seats) {
         columnt.assign(height, true);
     }
 }
 
 inline
-CinemaSession::CinemaSession(CinemaSession &&rhs) {
+CinemaSession::CinemaSession(CinemaSession&& rhs) {
     this->operator=(std::move(rhs));
 }
 
 inline
-CinemaSession &CinemaSession::operator=(CinemaSession &&rhs) {
+CinemaSession& CinemaSession::operator=(CinemaSession&& rhs) {
     if (this == &rhs) {
         return *this;
     }
@@ -100,12 +114,12 @@ Cinema::Cinema(size_t width, size_t height) : m_width(width),
                                               m_height(height) {}
 
 inline
-Cinema::Cinema(Cinema &&rhs) {
+Cinema::Cinema(Cinema&& rhs) {
     this->operator=(std::move(rhs));
 }
 
 inline
-Cinema &Cinema::operator=(Cinema &&rhs) {
+Cinema& Cinema::operator=(Cinema&& rhs) {
     if (this == &rhs) {
         return *this;
     }
@@ -121,7 +135,7 @@ std::set<std::string> Cinema::listOfFilms() const {
     std::set<std::string> films;
     {
         std::shared_lock lk(m_mut);
-        for (auto &&film : m_films) {
+        for (auto&& film : m_films) {
             films.emplace(film.first);
         }
     }
@@ -130,13 +144,14 @@ std::set<std::string> Cinema::listOfFilms() const {
 }
 
 inline
-bool Cinema::filmIsShowing(const std::string &searchingFilm) const {
+bool Cinema::filmIsShowing(const std::string& searchingFilm) const {
     std::shared_lock lk(m_mut);
     return m_films.find(searchingFilm) != m_films.end();
 }
 
 inline
-std::vector<std::string> Cinema::checkAvailableTickets(const std::string &searchingFilm) const {
+std::vector<std::string>
+Cinema::checkAvailableTickets(const std::string& searchingFilm) const {
     std::shared_lock lk(m_mut);
     auto it = m_films.find(searchingFilm);
     if (it == m_films.end()) {
@@ -147,7 +162,7 @@ std::vector<std::string> Cinema::checkAvailableTickets(const std::string &search
 }
 
 inline
-bool Cinema::bookTicket(const std::string &searchingFilm, size_t i, size_t j) {
+bool Cinema::bookTicket(const std::string& searchingFilm, size_t i, size_t j) {
     std::shared_lock lk(m_mut);
     auto it = m_films.find(searchingFilm);
     if (it == m_films.end()) {
@@ -158,7 +173,7 @@ bool Cinema::bookTicket(const std::string &searchingFilm, size_t i, size_t j) {
 }
 
 inline
-bool Cinema::appendFilm(const std::string &filmName) {
+bool Cinema::appendFilm(const std::string& filmName) {
     std::lock_guard lk(m_mut);
     return m_films.emplace(filmName, CinemaSession(m_width, m_height)).second;
 }
@@ -169,7 +184,7 @@ std::vector<std::string> Cinemas::listOfCinemas() const {
     cinemas.reserve(m_cinemas.size());
     {
         std::shared_lock lk(m_mut);
-        for (auto &cinema : m_cinemas) {
+        for (auto& cinema : m_cinemas) {
             cinemas.emplace_back(cinema.first);
         }
     }
@@ -188,6 +203,7 @@ std::set<std::string> Cinemas::listOfFilms(const std::string& cinemaName) const 
     return cinemaIt->second.listOfFilms();
 }
 
+inline
 std::set<std::string> Cinemas::listOfFilms() const {
     std::set<std::string> films;
     std::shared_lock lk(m_mut);
@@ -200,7 +216,8 @@ std::set<std::string> Cinemas::listOfFilms() const {
 }
 
 inline
-bool Cinemas::filmIsShowing(const std::string &cinemaName, const std::string &searchingFilm) const {
+bool Cinemas::filmIsShowing(const std::string& cinemaName,
+                            const std::string& searchingFilm) const {
     std::shared_lock lk(m_mut);
     auto cinemaIt = m_cinemas.find(cinemaName);
     if (cinemaIt == m_cinemas.end()) {
@@ -210,8 +227,22 @@ bool Cinemas::filmIsShowing(const std::string &cinemaName, const std::string &se
     return cinemaIt->second.filmIsShowing(searchingFilm);
 }
 
+inline std::vector<std::string> Cinemas::cinemasFilmIsShowing(const std::string&
+searchingFilm) const {
+    std::vector<std::string> cinemas;
+    std::shared_lock lk(m_mut);
+    for (auto& cinema : m_cinemas) {
+        if (cinema.second.filmIsShowing(searchingFilm)) {
+            cinemas.emplace_back(cinema.first);
+        }
+    }
+
+    return cinemas;
+}
+
 inline
-std::vector<std::string> Cinemas::checkAvailableTickets(const std::string &cinemaName, const std::string &searchingFilm) const {
+std::vector<std::string> Cinemas::checkAvailableSeats(const std::string& cinemaName,
+                                                      const std::string& searchingFilm) const {
     std::shared_lock lk(m_mut);
     auto cinemaIt = m_cinemas.find(cinemaName);
     if (cinemaIt == m_cinemas.end()) {
@@ -228,8 +259,8 @@ bool Cinemas::addCinema(std::string_view name, size_t width, size_t height) {
 }
 
 inline
-bool Cinemas::bookTicket(const std::string &cinemaName, const std::string &searchingFilm, size_t i, size_t j)
-{
+bool Cinemas::bookTicket(const std::string& cinemaName, const std::string& searchingFilm,
+                         size_t i, size_t j) {
     std::shared_lock lk(m_mut);
     auto cinemaIt = m_cinemas.find(cinemaName);
     if (cinemaIt == m_cinemas.end()) {
@@ -240,7 +271,7 @@ bool Cinemas::bookTicket(const std::string &cinemaName, const std::string &searc
 }
 
 inline
-bool Cinemas::appendFilm(const std::string &cinemaName, const std::string &filmName) {
+bool Cinemas::appendFilm(const std::string& cinemaName, const std::string& filmName) {
     std::shared_lock lk(m_mut);
     auto cinemaIt = m_cinemas.find(cinemaName);
     if (cinemaIt == m_cinemas.end()) {

@@ -4,7 +4,11 @@
 namespace {
     std::string getPrintedSeat(size_t i, size_t j) {
         std::stringstream sstream;
-        sstream << i << "row" << j << "place";
+        sstream << i << "row" << j << "seat";
+    }
+
+    std::pair<size_t, size_t> getSeatFromPrinted(std::string_view seatStr) {
+
     }
 }
 
@@ -45,4 +49,17 @@ bool CinemaSession::bookSeat(size_t width, size_t height) {
     }
 
     return booked;
+}
+
+bool Cinemas::bookTickets(const std::string& cinemaName, const std::string& searchingFilm,
+                          const std::vector<std::string>& bookingSeats) {
+    std::shared_lock lk(m_mut);
+    auto cinemaIt = m_cinemas.find(cinemaName);
+    if (cinemaIt == m_cinemas.end()) {
+        return false;
+    }
+
+    for (auto& seatStr : bookingSeats) {
+        [i, j] = get
+    }
 }

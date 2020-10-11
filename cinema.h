@@ -10,20 +10,37 @@
 #include <set>
 #include <mutex>
 
+class CinemaException : public std::exception
+{
+    std::string m_reason;
+public:
+    explicit CinemaException(std::string_view reason) : m_reason(reason) {}
+
+    const char * what () const throw() override
+    {
+        return m_reason.c_str();
+    }
+};
+
 class CinemaSession {
-    std::vector<std::vector<bool>> m_seats;
+    std::vector<std::vector<bool>> m_availableSeats;
     int m_avaliableSeatsCount;
     mutable std::shared_mutex m_mut;
+
+    std::vector<std::string> getBusySeats(const std::vector<std::string> &bookingSeats);
+
 public:
     CinemaSession(size_t width, size_t height);
 
-    CinemaSession(CinemaSession&& rhs);
+    CinemaSession(CinemaSession &&rhs);
 
-    CinemaSession& operator=(CinemaSession&& rhs);
+    CinemaSession &operator=(CinemaSession &&rhs);
 
     std::vector<std::string> availableSeats() const;
 
     bool bookSeat(size_t width, size_t height);
+
+    std::vector<std::string> bookSeats(const std::vector<std::string> &bookingSeats);
 };
 
 class Cinema {
@@ -35,20 +52,22 @@ public:
 public:
     Cinema(size_t width, size_t height);
 
-    Cinema(Cinema&& rhs);
+    Cinema(Cinema &&rhs);
 
-    Cinema& operator=(Cinema&& rhs);
+    Cinema &operator=(Cinema &&rhs);
 
     std::set<std::string> listOfFilms() const;
 
-    bool filmIsShowing(const std::string& searchingFilm) const;
+    bool filmIsShowing(const std::string &searchingFilm) const;
 
     std::vector<std::string>
-    checkAvailableTickets(const std::string& searchingFilm) const;
+    checkAvailableSeats(const std::string &searchingFilm) const;
 
-    bool bookTicket(const std::string& searchingFilm, size_t i, size_t j);
+    bool bookSeat(const std::string &searchingFilm, size_t i, size_t j);
 
-    bool appendFilm(const std::string& filmName);
+    std::vector<std::string> bookSeats(const std::string &searchingFilm, std::vector<std::string> bookingSeats);
+
+    bool appendFilm(const std::string &filmName);
 };
 
 class Cinemas {
@@ -57,55 +76,56 @@ class Cinemas {
 public:
     std::vector<std::string> listOfCinemas() const;
 
-    std::set<std::string> listOfFilms(const std::string& cinemaName) const;
+    std::set<std::string> listOfFilms(const std::string &cinemaName) const;
 
     std::set<std::string> listOfFilms() const;
 
     bool
-    filmIsShowing(const std::string& cinemaName, const std::string& searchingFilm) const;
+    filmIsShowing(const std::string &cinemaName, const std::string &searchingFilm) const;
+
     std::vector<std::string>
-    cinemasFilmIsShowing(const std::string& searchingFilm)
+    cinemasFilmIsShowing(const std::string &searchingFilm)
     const;
 
-    std::vector<std::string> checkAvailableSeats(const std::string& cinemaName,
-                                                 const std::string& searchingFilm) const;
+    std::vector<std::string> checkAvailableSeats(const std::string &cinemaName,
+                                                 const std::string &searchingFilm) const;
 
     bool addCinema(std::string_view name, size_t width, size_t height);
 
 
     bool
-    bookTicket(const std::string& cinemaName, const std::string& searchingFilm, size_t i,
-               size_t j);
+    bookSeat(const std::string &cinemaName, const std::string &searchingFilm, size_t i,
+             size_t j);
 
-    bool
-    bookTickets(const std::string& cinemaName, const std::string& searchingFilm,
-               const std::vector<std::string>& bookingSeats);
+    std::vector<std::string>
+    bookSeats(const std::string &cinemaName, const std::string &searchingFilm,
+              const std::vector<std::string> &bookingSeats);
 
-    bool appendFilm(const std::string& cinemaName, const std::string& filmName);
+    bool appendFilm(const std::string &cinemaName, const std::string &filmName);
 };
 
 inline
-CinemaSession::CinemaSession(size_t width, size_t height) : m_seats(width),
+CinemaSession::CinemaSession(size_t width, size_t height) : m_availableSeats(width),
                                                             m_avaliableSeatsCount(
                                                                     width * height) {
-    for (auto& columnt : m_seats) {
+    for (auto &columnt : m_availableSeats) {
         columnt.assign(height, true);
     }
 }
 
 inline
-CinemaSession::CinemaSession(CinemaSession&& rhs) {
+CinemaSession::CinemaSession(CinemaSession &&rhs) {
     this->operator=(std::move(rhs));
 }
 
 inline
-CinemaSession& CinemaSession::operator=(CinemaSession&& rhs) {
+CinemaSession &CinemaSession::operator=(CinemaSession &&rhs) {
     if (this == &rhs) {
         return *this;
     }
 
     std::scoped_lock lock(m_mut, rhs.m_mut);
-    m_seats = std::move(rhs.m_seats);
+    m_availableSeats = std::move(rhs.m_availableSeats);
     m_avaliableSeatsCount = rhs.m_avaliableSeatsCount;
 }
 
@@ -114,12 +134,12 @@ Cinema::Cinema(size_t width, size_t height) : m_width(width),
                                               m_height(height) {}
 
 inline
-Cinema::Cinema(Cinema&& rhs) {
+Cinema::Cinema(Cinema &&rhs) {
     this->operator=(std::move(rhs));
 }
 
 inline
-Cinema& Cinema::operator=(Cinema&& rhs) {
+Cinema &Cinema::operator=(Cinema &&rhs) {
     if (this == &rhs) {
         return *this;
     }
@@ -128,157 +148,6 @@ Cinema& Cinema::operator=(Cinema&& rhs) {
     m_films = std::move(rhs.m_films);
     m_width = rhs.m_width;
     m_height = rhs.m_height;
-}
-
-inline
-std::set<std::string> Cinema::listOfFilms() const {
-    std::set<std::string> films;
-    {
-        std::shared_lock lk(m_mut);
-        for (auto&& film : m_films) {
-            films.emplace(film.first);
-        }
-    }
-
-    return films;
-}
-
-inline
-bool Cinema::filmIsShowing(const std::string& searchingFilm) const {
-    std::shared_lock lk(m_mut);
-    return m_films.find(searchingFilm) != m_films.end();
-}
-
-inline
-std::vector<std::string>
-Cinema::checkAvailableTickets(const std::string& searchingFilm) const {
-    std::shared_lock lk(m_mut);
-    auto it = m_films.find(searchingFilm);
-    if (it == m_films.end()) {
-        return {};
-    }
-
-    return it->second.availableSeats();
-}
-
-inline
-bool Cinema::bookTicket(const std::string& searchingFilm, size_t i, size_t j) {
-    std::shared_lock lk(m_mut);
-    auto it = m_films.find(searchingFilm);
-    if (it == m_films.end()) {
-        return false;
-    }
-
-    return it->second.bookSeat(i, j);
-}
-
-inline
-bool Cinema::appendFilm(const std::string& filmName) {
-    std::lock_guard lk(m_mut);
-    return m_films.emplace(filmName, CinemaSession(m_width, m_height)).second;
-}
-
-inline
-std::vector<std::string> Cinemas::listOfCinemas() const {
-    std::vector<std::string> cinemas;
-    cinemas.reserve(m_cinemas.size());
-    {
-        std::shared_lock lk(m_mut);
-        for (auto& cinema : m_cinemas) {
-            cinemas.emplace_back(cinema.first);
-        }
-    }
-
-    return cinemas;
-}
-
-inline
-std::set<std::string> Cinemas::listOfFilms(const std::string& cinemaName) const {
-    std::shared_lock lk(m_mut);
-    auto cinemaIt = m_cinemas.find(cinemaName);
-    if (cinemaIt == m_cinemas.end()) {
-        return {};
-    }
-
-    return cinemaIt->second.listOfFilms();
-}
-
-inline
-std::set<std::string> Cinemas::listOfFilms() const {
-    std::set<std::string> films;
-    std::shared_lock lk(m_mut);
-    for (auto& cinema : m_cinemas) {
-        auto cinemaFilms = cinema.second.listOfFilms();
-        films.insert(cinemaFilms.begin(), cinemaFilms.end());
-    }
-
-    return films;
-}
-
-inline
-bool Cinemas::filmIsShowing(const std::string& cinemaName,
-                            const std::string& searchingFilm) const {
-    std::shared_lock lk(m_mut);
-    auto cinemaIt = m_cinemas.find(cinemaName);
-    if (cinemaIt == m_cinemas.end()) {
-        return false;
-    }
-
-    return cinemaIt->second.filmIsShowing(searchingFilm);
-}
-
-inline std::vector<std::string> Cinemas::cinemasFilmIsShowing(const std::string&
-searchingFilm) const {
-    std::vector<std::string> cinemas;
-    std::shared_lock lk(m_mut);
-    for (auto& cinema : m_cinemas) {
-        if (cinema.second.filmIsShowing(searchingFilm)) {
-            cinemas.emplace_back(cinema.first);
-        }
-    }
-
-    return cinemas;
-}
-
-inline
-std::vector<std::string> Cinemas::checkAvailableSeats(const std::string& cinemaName,
-                                                      const std::string& searchingFilm) const {
-    std::shared_lock lk(m_mut);
-    auto cinemaIt = m_cinemas.find(cinemaName);
-    if (cinemaIt == m_cinemas.end()) {
-        return {};
-    }
-
-    return cinemaIt->second.checkAvailableTickets(searchingFilm);
-}
-
-inline
-bool Cinemas::addCinema(std::string_view name, size_t width, size_t height) {
-    std::lock_guard lk(m_mut);
-    return m_cinemas.emplace(name, Cinema(width, height)).second;
-}
-
-inline
-bool Cinemas::bookTicket(const std::string& cinemaName, const std::string& searchingFilm,
-                         size_t i, size_t j) {
-    std::shared_lock lk(m_mut);
-    auto cinemaIt = m_cinemas.find(cinemaName);
-    if (cinemaIt == m_cinemas.end()) {
-        return false;
-    }
-
-    return cinemaIt->second.bookTicket(searchingFilm, i, j);
-}
-
-inline
-bool Cinemas::appendFilm(const std::string& cinemaName, const std::string& filmName) {
-    std::shared_lock lk(m_mut);
-    auto cinemaIt = m_cinemas.find(cinemaName);
-    if (cinemaIt == m_cinemas.end()) {
-        return false;
-    }
-
-    return cinemaIt->second.appendFilm(filmName);
 }
 
 #endif //TESTPOCO_CINEMAS_H

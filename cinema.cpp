@@ -2,10 +2,10 @@
 #include "cinema.h"
 
 namespace {
-std::string getPrintedSeat(size_t i, size_t j) {
-    std::stringstream sstream;
-    sstream << i << "row" << j << "place";
-}
+    std::string getPrintedSeat(size_t i, size_t j) {
+        std::stringstream sstream;
+        sstream << i << "row" << j << "place";
+    }
 }
 
 std::vector<std::string> CinemaSession::availableSeats() const { // todo: create cache

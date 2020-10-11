@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <shared_mutex>
 #include <vector>
+#include <set>
 #include <mutex>
 
 class CinemaSession {
@@ -38,7 +39,7 @@ public:
 
     Cinema &operator=(Cinema &&rhs);
 
-    std::vector<std::string> listOfFilms() const;
+    std::set<std::string> listOfFilms() const;
 
     bool filmIsShowing(const std::string &searchingFilm) const;
 
@@ -55,7 +56,8 @@ class Cinemas {
 public:
     std::vector<std::string> listOfCinemas() const;
 
-    std::vector<std::string> listOfFilms(const std::string& cinemaName) const;
+    std::set<std::string> listOfFilms(const std::string& cinemaName) const;
+    std::set<std::string> listOfFilms() const;
 
     bool filmIsShowing(const std::string &cinemaName, const std::string &searchingFilm) const;
 
@@ -115,13 +117,12 @@ Cinema &Cinema::operator=(Cinema &&rhs) {
 }
 
 inline
-std::vector<std::string> Cinema::listOfFilms() const {
-    std::vector<std::string> films;
-    films.reserve(m_films.size());
+std::set<std::string> Cinema::listOfFilms() const {
+    std::set<std::string> films;
     {
         std::shared_lock lk(m_mut);
         for (auto &&film : m_films) {
-            films.emplace_back(film.first);
+            films.emplace(film.first);
         }
     }
 
@@ -177,7 +178,7 @@ std::vector<std::string> Cinemas::listOfCinemas() const {
 }
 
 inline
-std::vector<std::string> Cinemas::listOfFilms(const std::string& cinemaName) const {
+std::set<std::string> Cinemas::listOfFilms(const std::string& cinemaName) const {
     std::shared_lock lk(m_mut);
     auto cinemaIt = m_cinemas.find(cinemaName);
     if (cinemaIt == m_cinemas.end()) {
@@ -185,6 +186,17 @@ std::vector<std::string> Cinemas::listOfFilms(const std::string& cinemaName) con
     }
 
     return cinemaIt->second.listOfFilms();
+}
+
+std::set<std::string> Cinemas::listOfFilms() const {
+    std::set<std::string> films;
+    std::shared_lock lk(m_mut);
+    for (auto& cinema : m_cinemas) {
+        auto cinemaFilms = cinema.second.listOfFilms();
+        films.insert(cinemaFilms.begin(), cinemaFilms.end());
+    }
+
+    return films;
 }
 
 inline

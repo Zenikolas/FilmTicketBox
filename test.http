@@ -1,0 +1,30 @@
+POST 127.0.0.1:20322/cinemas/
+Content-Type: application/json
+
+{"cinemas": [
+  {"name": "PiterLand",
+    "width": 10,
+    "height": 20,
+    "films": ["Once upon in hollywood", "Survived"]},
+  {"name": "Galary",
+    "films": ["Once upon in hollywood", "Ford VS Ferrari"],
+    "width": 10,
+    "height": 20
+  }
+]
+}
+
+###
+GET 127.0.0.1:20322/cinemas/
+
+###
+GET 127.0.0.1:20322/cinemat/
+
+
+
+<> 2020-10-11T021401.200.txt
+<> 2020-10-11T020804.200.txt
+<> 2020-10-10T110443.200.txt
+<> 2020-10-10T105907.200.json
+<> 2020-10-08T123544.200.json
+<> 2020-10-08T123125.200.txt

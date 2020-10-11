@@ -10,5 +10,5 @@ IF(Poco_FOUND)
 ENDIF()
 
 include_directories(Poco_INCLUDE_DIRS)
-add_executable(filmTicketBox main.cpp cinema.cpp)
+add_executable(filmTicketBox main.cpp cinema.cpp handlers.cpp)
 target_link_libraries(filmTicketBox Poco::Net Poco::JSON Poco::Util)

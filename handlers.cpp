@@ -6,14 +6,14 @@
 #include <Poco/JSON/Parser.h>
 
 namespace {
-    std::ostream & sendReason(Poco::Net::HTTPServerResponse &response, const std::string& reason){
-        std::ostream & bodyStream= response.send();
+    std::ostream &sendReason(Poco::Net::HTTPServerResponse &response, const std::string &reason) {
+        std::ostream &bodyStream = response.send();
         Poco::JSON::Object obj;
         obj.set("reason", reason);
         obj.stringify(bodyStream);
     }
 
-    std::ostream & sendHTTPNotFound(Poco::Net::HTTPServerResponse &response, const std::string& reason = "") {
+    std::ostream &sendHTTPNotFound(Poco::Net::HTTPServerResponse &response, const std::string &reason = "") {
         response.setStatusAndReason(Poco::Net::HTTPServerResponse::HTTP_NOT_FOUND);
         if (reason.empty()) {
             return response.send();
@@ -22,7 +22,7 @@ namespace {
         }
     }
 
-    std::ostream & sendHTTPMethodNotAllowed(Poco::Net::HTTPServerResponse &response, const std::string& reason = "") {
+    std::ostream &sendHTTPMethodNotAllowed(Poco::Net::HTTPServerResponse &response, const std::string &reason = "") {
         response.setStatusAndReason(Poco::Net::HTTPServerResponse::HTTP_METHOD_NOT_ALLOWED);
         if (reason.empty()) {
             return response.send();
@@ -31,7 +31,7 @@ namespace {
         }
     }
 
-    std::ostream & sendHTTPBadRequest(Poco::Net::HTTPServerResponse &response, const std::string& reason = "") {
+    std::ostream &sendHTTPBadRequest(Poco::Net::HTTPServerResponse &response, const std::string &reason = "") {
         response.setStatusAndReason(Poco::Net::HTTPServerResponse::HTTP_BAD_REQUEST);
         if (reason.empty()) {
             return response.send();
@@ -85,18 +85,18 @@ void CinemasRequestHandler::handleCinemaRequest(Poco::Net::HTTPServerRequest &re
     const std::string &cinemaName = pathSegments[1];
     std::istream &istream = request.stream();
     if (cinemaName == "films") {
+        auto films = m_cinemas.listOfFilms();
         std::ostream &respBodyStream = sendHTTPOKRequest(response);
-        std::set<std::string> films = m_cinemas.listOfFilms();
         Poco::JSON::Object obj;
         obj.set("films", films);
         obj.stringify(respBodyStream);
         return;
     }
 
-    std::set<std::string> films = m_cinemas.listOfFilms(cinemaName);
+    auto cinemaFilms = m_cinemas.listOfFilms(cinemaName);
     std::ostream &respBodyStream = sendHTTPOKRequest(response);
     Poco::JSON::Object obj;
-    obj.set("films", films);
+    obj.set("films", cinemaFilms);
     obj.stringify(respBodyStream);
 }
 
@@ -119,7 +119,7 @@ void CinemasRequestHandler::handleFilmsRequest(Poco::Net::HTTPServerRequest &req
         }
 
         std::istream &istream = request.stream();
-        Poco::JSON::Parser parser; // todo combine this to one method
+        Poco::JSON::Parser parser;
         Poco::Dynamic::Var result = parser.parse(istream);
         if (result.isEmpty()) {
             sendHTTPBadRequest(response, "Invalid body format");
@@ -148,7 +148,8 @@ void CinemasRequestHandler::handleFilmsRequest(Poco::Net::HTTPServerRequest &req
             return;
         }
 
-        std::ostream &respBodyStream = sendHTTPOKRequest(response);
+        response.setStatusAndReason(Poco::Net::HTTPServerResponse::HTTP_CREATED);
+        response.send();
         return;
     }
 
@@ -171,10 +172,10 @@ void CinemasRequestHandler::handleFilmsRequest(Poco::Net::HTTPServerRequest &req
         return;
     }
 
-    auto seats = m_cinemas.checkAvailableSeats(cinemaName, film);
+    auto availableSeats = m_cinemas.checkAvailableSeats(cinemaName, film);
     std::ostream &respBodyStream = sendHTTPOKRequest(response);
     Poco::JSON::Object obj;
-    obj.set("seats", seats);
+    obj.set("seats", availableSeats);
     obj.stringify(respBodyStream);
 }
 
@@ -196,8 +197,6 @@ bool CinemasRequestHandler::addCinemas(std::istream &content) {
     }
 
     for (auto &cinema : *cinemas) {
-
-        std::cout << "Cinema:" << std::endl;
         auto cinemaObject = cinema.extract<Poco::JSON::Object::Ptr>();
         if (cinemaObject.isNull()) {
             return false;
@@ -217,7 +216,9 @@ bool CinemasRequestHandler::addCinemas(std::istream &content) {
             return false;
         }
         int height = cinemaObject->get("height");
-        m_cinemas.addCinema(cinemaName, width, height);
+        if (!m_cinemas.addCinema(cinemaName, width, height)) {
+            return false;
+        }
 
         auto films = cinemaObject->getArray("films");
         if (!films) {
@@ -225,7 +226,9 @@ bool CinemasRequestHandler::addCinemas(std::istream &content) {
         }
         for (auto &filmVar: *films) {
             std::string film = filmVar;
-            m_cinemas.appendFilm(cinemaName, film); //todo check return value
+            if (!m_cinemas.appendFilm(cinemaName, film)) {
+                return false;
+            }
         }
     }
 
@@ -255,8 +258,8 @@ CinemasRequestHandler::handleRequest(Poco::Net::HTTPServerRequest &request, Poco
             sendHTTPNotFound(response);
             return;
         }
-    } catch (const CinemaException& exc) {
-        std::ostream & bodyStream = sendHTTPBadRequest(response);
+    } catch (const CinemaException &exc) {
+        std::ostream &bodyStream = sendHTTPBadRequest(response);
         Poco::JSON::Object obj;
         obj.set("reason", std::string(exc.what()));
         obj.stringify(bodyStream);

@@ -10,14 +10,12 @@
 #include <set>
 #include <mutex>
 
-class CinemaException : public std::exception
-{
+class CinemaException : public std::exception {
     std::string m_reason;
 public:
     explicit CinemaException(std::string_view reason) : m_reason(reason) {}
 
-    const char * what () const throw() override
-    {
+    const char *what() const throw() override {
         return m_reason.c_str();
     }
 };
@@ -76,9 +74,9 @@ class Cinemas {
 public:
     std::vector<std::string> listOfCinemas() const;
 
-    std::set<std::string> listOfFilms(const std::string &cinemaName) const;
+    std::vector<std::string> listOfFilms(const std::string &cinemaName) const;
 
-    std::set<std::string> listOfFilms() const;
+    std::vector<std::string> listOfFilms() const;
 
     bool
     filmIsShowing(const std::string &cinemaName, const std::string &searchingFilm) const;

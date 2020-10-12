@@ -5,6 +5,7 @@ namespace {
     std::string getPrintedSeat(size_t i, size_t j) {
         std::stringstream sstream;
         sstream << i << "row" << j << "seat";
+        return sstream.str();
     }
 
     std::pair<int, int> getSeatFromPrinted(std::string_view seatStr) {
@@ -164,17 +165,18 @@ std::vector<std::string> Cinemas::listOfCinemas() const {
     return cinemas;
 }
 
-std::set<std::string> Cinemas::listOfFilms(const std::string &cinemaName) const {
+std::vector<std::string> Cinemas::listOfFilms(const std::string &cinemaName) const {
     std::shared_lock lk(m_mut);
     auto cinemaIt = m_cinemas.find(cinemaName);
     if (cinemaIt == m_cinemas.end()) {
         throw CinemaException("Cinema not found");
     }
 
-    return cinemaIt->second.listOfFilms();
+    auto films = cinemaIt->second.listOfFilms();
+    return std::vector<std::string>(films.begin(), films.end());
 }
 
-std::set<std::string> Cinemas::listOfFilms() const {
+std::vector<std::string> Cinemas::listOfFilms() const {
     std::set<std::string> films;
     std::shared_lock lk(m_mut);
     for (auto &cinema : m_cinemas) {
@@ -182,7 +184,7 @@ std::set<std::string> Cinemas::listOfFilms() const {
         films.insert(cinemaFilms.begin(), cinemaFilms.end());
     }
 
-    return films;
+    return std::vector<std::string>(films.begin(), films.end());
 }
 
 bool Cinemas::filmIsShowing(const std::string &cinemaName,

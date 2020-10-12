@@ -1,0 +1,37 @@
+### Add cinemas and films and capacity
+POST 127.0.0.1:20322/cinemas/
+Content-Type: application/json
+
+{"cinemas": [
+  {"name": "PiterLand",
+    "width": 10,
+    "height": 20,
+    "films": ["Once upon in hollywood", "Survived"]},
+  {"name": "Galary",
+    "films": ["Survived", "Ford VS Ferrari"],
+    "width": 10,
+    "height": 20
+  }
+]
+}
+
+### View all cinemas
+GET 127.0.0.1:20322/cinemas
+
+### View all films in selected cinema
+GET 127.0.0.1:20322/cinemas/Galary
+
+### View all playing movies
+GET 127.0.0.1:20322/cinemas/films
+
+### See all cinemas showing the movie
+GET 127.0.0.1:20322/cinemas/films/Survived
+
+### Select a movie and see available seats in certain cinema
+GET 127.0.0.1:20322/cinemas/PiterLand/Survived
+
+### Book seats for certain films and cinema
+POST 127.0.0.1:20322/cinemas/PiterLand/Survived
+Content-Type: application/json
+
+{"seats": ["0row0seat", "0row1seat"]}

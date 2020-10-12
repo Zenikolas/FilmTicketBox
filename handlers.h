@@ -19,8 +19,8 @@ class CinemasRequestHandler : public Poco::Net::HTTPRequestHandler {
                              std::vector<std::string> &pathSegments);
 
     void handleFilmsRequest(Poco::Net::HTTPServerRequest &request,
-                        Poco::Net::HTTPServerResponse &response,
-                             std::vector<std::string> &pathSegments);
+                            Poco::Net::HTTPServerResponse &response,
+                            std::vector<std::string> &pathSegments);
 
 public:
     explicit CinemasRequestHandler(Cinemas &cinemas) : m_cinemas(cinemas) {}

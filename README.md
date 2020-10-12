@@ -1,14 +1,9 @@
 # FilmTicketBox
 REST API training service which allows manage cinemas and buy tickets
 
-### Issues
 
-- add errors description along with status code and reason
-- add usage documentation
-- add unit test and integration tests
-- add logging by levels and log all errors
 
-### Install
+### Build and Install
 
 1. Install deps for Poco
 ```
@@ -34,3 +29,30 @@ cd build
 cmake ../
 make -j4
 ```
+
+### Usage
+See usage scenario [here](./usage.http)
+
+### Testing
+- install the following packages to run test in `cinema_test.py` file
+```
+pip3 install -U requests Flask pytest pytest-html
+```
+
+- run the application
+```
+./filmTicketBox
+```
+- run tests
+```
+pytest
+```
+
+### Issues
+
+- add errors description along with status code and reason
+- add usage documentation
+- add unit tests
+- add logging by levels and log all errors
+- application start on hardcoded 20322 port, make it cmd arg
+- add usage flag to cmd

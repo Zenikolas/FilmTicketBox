@@ -19,7 +19,7 @@ namespace {
             return {i, j};
         }
 
-        throw CinemaException("bad format of requested seat");
+        throw std::runtime_error("bad format of requested seat");
     }
 }
 
@@ -103,7 +103,7 @@ std::vector<std::string> Cinema::bookSeats(const std::string &searchingFilm, std
     std::shared_lock lk(m_mut);
     auto it = m_films.find(searchingFilm);
     if (it == m_films.end()) {
-        throw CinemaException("film not found");
+        throw std::runtime_error("film not found");
     }
 
     return it->second.bookSeats(bookingSeats);
@@ -131,7 +131,7 @@ Cinema::checkAvailableSeats(const std::string &searchingFilm) const {
     std::shared_lock lk(m_mut);
     auto it = m_films.find(searchingFilm);
     if (it == m_films.end()) {
-        throw CinemaException("Film not found");
+        throw std::runtime_error("Film not found");
     }
 
     return it->second.availableSeats();
@@ -141,7 +141,7 @@ bool Cinema::bookSeat(const std::string &searchingFilm, size_t i, size_t j) {
     std::shared_lock lk(m_mut);
     auto it = m_films.find(searchingFilm);
     if (it == m_films.end()) {
-        throw CinemaException("Film not found");
+        throw std::runtime_error("Film not found");
     }
 
     return it->second.bookSeat(i, j);
@@ -169,7 +169,7 @@ std::vector<std::string> Cinemas::listOfFilms(const std::string &cinemaName) con
     std::shared_lock lk(m_mut);
     auto cinemaIt = m_cinemas.find(cinemaName);
     if (cinemaIt == m_cinemas.end()) {
-        throw CinemaException("Cinema not found");
+        throw std::runtime_error("Cinema not found");
     }
 
     auto films = cinemaIt->second.listOfFilms();
@@ -192,7 +192,7 @@ bool Cinemas::filmIsShowing(const std::string &cinemaName,
     std::shared_lock lk(m_mut);
     auto cinemaIt = m_cinemas.find(cinemaName);
     if (cinemaIt == m_cinemas.end()) {
-        throw CinemaException("Cinema not found");
+        throw std::runtime_error("Cinema not found");
     }
 
     return cinemaIt->second.filmIsShowing(searchingFilm);
@@ -216,7 +216,7 @@ std::vector<std::string> Cinemas::checkAvailableSeats(const std::string &cinemaN
     std::shared_lock lk(m_mut);
     auto cinemaIt = m_cinemas.find(cinemaName);
     if (cinemaIt == m_cinemas.end()) {
-        throw CinemaException("Cinema not found");
+        throw std::runtime_error("Cinema not found");
     }
 
     return cinemaIt->second.checkAvailableSeats(searchingFilm);
@@ -232,7 +232,7 @@ bool Cinemas::bookSeat(const std::string &cinemaName, const std::string &searchi
     std::shared_lock lk(m_mut);
     auto cinemaIt = m_cinemas.find(cinemaName);
     if (cinemaIt == m_cinemas.end()) {
-        throw CinemaException("Cinema not found");
+        throw std::runtime_error("Cinema not found");
     }
 
     return cinemaIt->second.bookSeat(searchingFilm, i, j);
@@ -242,7 +242,7 @@ bool Cinemas::appendFilm(const std::string &cinemaName, const std::string &filmN
     std::shared_lock lk(m_mut);
     auto cinemaIt = m_cinemas.find(cinemaName);
     if (cinemaIt == m_cinemas.end()) {
-        throw CinemaException("Cinema not found");
+        throw std::runtime_error("Cinema not found");
     }
 
     return cinemaIt->second.appendFilm(filmName);
@@ -253,7 +253,7 @@ std::vector<std::string> Cinemas::bookSeats(const std::string &cinemaName, const
     std::shared_lock lk(m_mut);
     auto cinemaIt = m_cinemas.find(cinemaName);
     if (cinemaIt == m_cinemas.end()) {
-        throw CinemaException("not found cinema");
+        throw std::runtime_error("not found cinema");
     }
 
     return cinemaIt->second.bookSeats(searchingFilm, bookingSeats);

@@ -258,7 +258,7 @@ CinemasRequestHandler::handleRequest(Poco::Net::HTTPServerRequest &request, Poco
             sendHTTPNotFound(response);
             return;
         }
-    } catch (const CinemaException &exc) {
+    } catch (const std::runtime_error &exc) {
         std::ostream &bodyStream = sendHTTPBadRequest(response);
         Poco::JSON::Object obj;
         obj.set("reason", std::string(exc.what()));

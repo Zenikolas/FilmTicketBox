@@ -10,16 +10,6 @@
 #include <set>
 #include <mutex>
 
-class CinemaException : public std::exception {
-    std::string m_reason;
-public:
-    explicit CinemaException(std::string_view reason) : m_reason(reason) {}
-
-    const char *what() const throw() override {
-        return m_reason.c_str();
-    }
-};
-
 class CinemaSession {
     std::vector<std::vector<bool>> m_availableSeats;
     int m_avaliableSeatsCount;

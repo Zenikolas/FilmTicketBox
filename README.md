@@ -51,9 +51,5 @@ pytest
 
 ### Issues
 
-- add errors description along with status code and reason
-- add usage documentation
 - add unit tests
 - add logging by levels and log all errors
-- application start on hardcoded 20322 port, make it cmd arg
-- add usage flag to cmd

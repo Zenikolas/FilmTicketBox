@@ -7,8 +7,21 @@
 #include "handlers.h"
 
 class CinemaServerApplication : public Poco::Util::ServerApplication {
+public:
+    void initialize(Application& self)
+    {
+        loadConfiguration(); // load default configuration files, if present
+        ServerApplication::initialize(self);
+    }
+
+    void uninitialize()
+    {
+        ServerApplication::uninitialize();
+    }
+
     int main(const std::vector<std::string> &args) override {
-        size_t port = 20322; //add port ot args and  check for hostname
+        // to change the port see filmTicketBox.properties config file
+        unsigned int port = (unsigned int) config().getInt("filmTicketBox.port", 20323);
         Poco::Net::HTTPServer httpServer(new CinemasHTTPRequestHandlerFactory, port);
 
         httpServer.start();

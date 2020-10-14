@@ -248,11 +248,11 @@ CinemasRequestHandler::handleRequest(Poco::Net::HTTPServerRequest &request, Poco
     }
 
     try {
-        if (pathSegments.size() == 1) {
+        if (pathSegments.size() == PathTokenSize::CINEMAS) {
             handleCinemasRequest(request, response);
-        } else if (pathSegments.size() == 2) {
+        } else if (pathSegments.size() == PathTokenSize::CINEMA) {
             handleCinemaRequest(request, response, pathSegments);
-        } else if (pathSegments.size() == 3) {
+        } else if (pathSegments.size() == PathTokenSize::FILM) {
             handleFilmsRequest(request, response, pathSegments);
         } else {
             sendHTTPNotFound(response);

@@ -41,10 +41,11 @@ pip3 install -U requests Flask pytest pytest-html
 
 - run the application
 ```
-./filmTicketBox
+./filmTicketBox -p 20322
 ```
 - run tests
 ```
+cd <PROJECT_DIRECTORY>
 pytest
 ```
 

@@ -9,6 +9,12 @@
 #include "cinema.h"
 
 class CinemasRequestHandler : public Poco::Net::HTTPRequestHandler {
+    enum PathTokenSize {
+        CINEMAS = 1,
+        CINEMA,
+        FILM,
+    };
+
     Cinemas &m_cinemas;
 
     bool addCinemas(std::istream &content);
